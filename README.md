@@ -14,7 +14,7 @@ Configure this plugin using the following environment variables:
 **BTCPAY_XMR_DAEMON_USERNAME** | **Optional**.  The username for authenticating with the daemon. | john |
 **BTCPAY_XMR_DAEMON_PASSWORD** | **Optional**. The password for authenticating with the daemon. | secret |
 **BTCPAY_XMR_WALLET_DAEMON_URI** | **Required**.  The URI of the [monero-wallet-rpc](https://getmonero.dev/interacting/monero-wallet-rpc.html) RPC interface. | http://127.0.0.1:18082 |
-**BTCPAY_XMR_WALLET_DAEMON_WALLETDIR** | **Required**. The directory where BTCPay Server saves wallet files uploaded via the UI ([See this blog post for more details](https://sethforprivacy.com/guides/accepting-monero-via-btcpay-server/#configure-the-bitcoin-wallet-of-choice)). |
+**BTCPAY_XMR_WALLET_DAEMON_WALLETDIR** | **Required**. The directory where BTCPay Server saves wallet files uploaded via the UI ([See this blog post for more details](https://sethforprivacy.com/guides/accepting-monero-via-btcpay-server/#configure-the-bitcoin-wallet-of-choice)). | /home/cypherpunk/Monero/wallets/ |
 
 BTCPay Server's Docker deployment simplifies the setup by automatically configuring these variables. For further details, refer to this [blog post](https://sethforprivacy.com/guides/accepting-monero-via-btcpay-server).
 
@@ -22,7 +22,7 @@ BTCPay Server's Docker deployment simplifies the setup by automatically configur
 
 If you are a developer maintaining this plugin, in order to maintain this plugin, you need to clone this repository with `--recurse-submodules`:
 ```bash
-git clone --recurse-submodules 
+git clone --recurse-submodules https://github.com/btcpayserver/btcpayserver-monero-plugin
 ```
 Then run the tests dependencies
 ```bash
