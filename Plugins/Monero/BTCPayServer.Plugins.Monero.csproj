@@ -5,8 +5,8 @@
 
   <!-- Plugin specific properties -->
   <PropertyGroup>
-    <Product>BTCPay Server Plugin Template</Product>
-    <Description>A template for your own BTCPay Server plugin.</Description>
+    <Product>BTCPay Server: Monero support plugin</Product>
+    <Description>This plugin extends BTCPay Server to enable users to receive payments via Monero.</Description>
     <Version>1.0.0</Version>
   </PropertyGroup>
 
