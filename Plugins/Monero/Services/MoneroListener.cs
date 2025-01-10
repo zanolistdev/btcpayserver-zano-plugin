@@ -314,7 +314,7 @@ namespace BTCPayServer.Plugins.Monero.Services
                         });
                 return result;
             }
-            catch (JsonRpcClient.JsonRpcApiException e)
+            catch (JsonRpcClient.JsonRpcApiException)
             {
                 return null;
             }
