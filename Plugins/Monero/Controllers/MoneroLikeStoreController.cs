@@ -101,7 +101,6 @@ namespace BTCPayServer.Plugins.Monero.Controllers
             _MoneroRpcProvider.Summaries.TryGetValue(cryptoCode, out var summary);
             _MoneroLikeConfiguration.MoneroLikeConfigurationItems.TryGetValue(cryptoCode,
                 out var configurationItem);
-            var fileAddress = Path.Combine(configurationItem.WalletDirectory, "wallet");
             var accounts = accountsResponse?.SubaddressAccounts?.Select(account =>
                 new SelectListItem(
                     $"{account.AccountIndex} - {(string.IsNullOrEmpty(account.Label) ? "No label" : account.Label)}",
@@ -121,7 +120,6 @@ namespace BTCPayServer.Plugins.Monero.Controllers
 
             return new MoneroLikePaymentMethodViewModel()
             {
-                WalletFileFound = System.IO.File.Exists(fileAddress),
                 Enabled =
                     settings != null &&
                     !excludeFilters.Match(PaymentTypes.CHAIN.GetPaymentMethodId(cryptoCode)),
@@ -193,7 +191,11 @@ namespace BTCPayServer.Plugins.Monero.Controllers
                     ModelState.AddModelError(nameof(viewModel.WalletKeysFile), StringLocalizer["Please select the view-only wallet keys file"]);
                     valid = false;
                 }
-
+                if (configurationItem.WalletDirectory == null)
+                {
+                    ModelState.AddModelError(nameof(viewModel.WalletFile), StringLocalizer["This installation doesn't support wallet import (BTCPAY_XMR_WALLET_DAEMON_WALLETDIR is not set)"]);
+                    valid = false;
+                }
                 if (valid)
                 {
                     if (_MoneroRpcProvider.Summaries.TryGetValue(cryptoCode, out var summary))
@@ -288,6 +290,7 @@ namespace BTCPayServer.Plugins.Monero.Controllers
                 vm.AccountIndex = viewModel.AccountIndex;
                 vm.SettlementConfirmationThresholdChoice = viewModel.SettlementConfirmationThresholdChoice;
                 vm.CustomSettlementConfirmationThreshold = viewModel.CustomSettlementConfirmationThreshold;
+                vm.SupportWalletExport = configurationItem.WalletDirectory is not null;
                 return View("/Views/Monero/GetStoreMoneroLikePaymentMethod.cshtml", vm);
             }
 
@@ -345,6 +348,7 @@ namespace BTCPayServer.Plugins.Monero.Controllers
         public class MoneroLikePaymentMethodViewModel : IValidatableObject
         {
             public MoneroRPCProvider.MoneroLikeSummary Summary { get; set; }
+            public bool SupportWalletExport { get; set; }
             public string CryptoCode { get; set; }
             public string NewAccountLabel { get; set; }
             public long AccountIndex { get; set; }

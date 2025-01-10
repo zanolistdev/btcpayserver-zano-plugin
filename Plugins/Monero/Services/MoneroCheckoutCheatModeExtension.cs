@@ -50,7 +50,7 @@ public class MoneroCheckoutCheatModeExtension : ICheckoutCheatModeExtension
     public async Task<ICheckoutCheatModeExtension.MineBlockResult> MineBlock(ICheckoutCheatModeExtension.MineBlockContext mineBlockContext)
     {
         var cashcow = _rpcProvider.CashCowWalletRpcClients[_network.CryptoCode];
-        var deamon = _rpcProvider.WalletRpcClients[_network.CryptoCode];
+        var deamon = _rpcProvider.DaemonRpcClients[_network.CryptoCode];
         var address = (await cashcow.SendCommandAsync<GetAddressRequest, GetAddressResponse>("get_address", new()
         {
             AccountIndex = 0

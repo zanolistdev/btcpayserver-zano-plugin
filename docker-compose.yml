@@ -86,7 +86,7 @@ services:
       ports:
           - "18082:18082"
       volumes:  
-          - "./wallets/merchant:/wallet"
+          - "tests_monero_merchant_wallet:/wallet"
       depends_on:
           - monerod
 
@@ -98,7 +98,7 @@ services:
         ports:
             - "18092:18092"
         volumes:
-            - "./wallets/cashcow:/wallet"
+          - "tests_monero_cashcow_wallet:/wallet"
         depends_on:
             - monerod
 
@@ -114,6 +114,8 @@ services:
 volumes:
     bitcoin_datadir:
     monero_data:
+    tests_monero_merchant_wallet:
+    tests_monero_cashcow_wallet:
 
 networks:
   default:

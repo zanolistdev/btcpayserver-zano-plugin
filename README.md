@@ -8,13 +8,13 @@ This plugin extends BTCPay Server to enable users to receive payments via Monero
 
 Configure this plugin using the following environment variables:
 
-| Environment variable | Description | Example |
-| --- | --- | --- |
-**BTCPAY_XMR_DAEMON_URI** | **Required**. The URI of the [monerod](https://github.com/monero-project/monero) RPC interface. | http://127.0.0.1:18081 |
-**BTCPAY_XMR_DAEMON_USERNAME** | **Optional**.  The username for authenticating with the daemon. | john |
-**BTCPAY_XMR_DAEMON_PASSWORD** | **Optional**. The password for authenticating with the daemon. | secret |
-**BTCPAY_XMR_WALLET_DAEMON_URI** | **Required**.  The URI of the [monero-wallet-rpc](https://getmonero.dev/interacting/monero-wallet-rpc.html) RPC interface. | http://127.0.0.1:18082 |
-**BTCPAY_XMR_WALLET_DAEMON_WALLETDIR** | **Required**. The directory where BTCPay Server saves wallet files uploaded via the UI ([See this blog post for more details](https://sethforprivacy.com/guides/accepting-monero-via-btcpay-server/#configure-the-bitcoin-wallet-of-choice)). | /home/cypherpunk/Monero/wallets/ |
+| Environment variable | Description                                                                                                                                                                                                                                   | Example |
+| --- |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| --- |
+**BTCPAY_XMR_DAEMON_URI** | **Required**. The URI of the [monerod](https://github.com/monero-project/monero) RPC interface.                                                                                                                                               | http://127.0.0.1:18081 |
+**BTCPAY_XMR_DAEMON_USERNAME** | **Optional**.  The username for authenticating with the daemon.                                                                                                                                                                               | john |
+**BTCPAY_XMR_DAEMON_PASSWORD** | **Optional**. The password for authenticating with the daemon.                                                                                                                                                                                | secret |
+**BTCPAY_XMR_WALLET_DAEMON_URI** | **Required**.  The URI of the [monero-wallet-rpc](https://getmonero.dev/interacting/monero-wallet-rpc.html) RPC interface.                                                                                                                    | http://127.0.0.1:18082 |
+**BTCPAY_XMR_WALLET_DAEMON_WALLETDIR** | **Optional**. The directory where BTCPay Server saves wallet files uploaded via the UI ([See this blog post for more details](https://sethforprivacy.com/guides/accepting-monero-via-btcpay-server/#configure-the-bitcoin-wallet-of-choice)). | /home/cypherpunk/Monero/wallets/ |
 
 BTCPay Server's Docker deployment simplifies the setup by automatically configuring these variables. For further details, refer to this [blog post](https://sethforprivacy.com/guides/accepting-monero-via-btcpay-server).
 
@@ -37,8 +37,6 @@ Then create the `appsettings.dev.json` file in `btcpayserver/BTCPayServer`, with
   "XMR_DAEMON_URI": "http://127.0.0.1:18081",
   "XMR_WALLET_DAEMON_URI": "http://127.0.0.1:18082",
   "XMR_CASHCOW_WALLET_DAEMON_URI": "http://127.0.0.1:18092",
-  "XMR_WALLET_DAEMON_WALLETDIR": "C:\\Sources\\btcpayserver-monero-plugin\\wallets\\merchant",
-  "XMR_CASHCOW_WALLET_DAEMON_WALLETDIR": "C:\\Sources\\btcpayserver-monero-plugin\\wallets\\cashcow"
 }
 ```
 

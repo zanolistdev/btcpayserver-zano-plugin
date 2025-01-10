@@ -89,6 +89,7 @@ namespace BTCPayServer.Plugins.Monero.Services
                 {
                     await OnNewBlock(moneroEvent.CryptoCode);
                 }
+
                 if (!string.IsNullOrEmpty(moneroEvent.TransactionHash))
                 {
                     await OnTransactionUpdated(moneroEvent.CryptoCode, moneroEvent.TransactionHash);
@@ -132,7 +133,8 @@ namespace BTCPayServer.Plugins.Monero.Services
             var expandedInvoices = invoices.Select(entity => (Invoice: entity,
                     ExistingPayments: GetAllMoneroLikePayments(entity, cryptoCode),
                     Prompt: entity.GetPaymentPrompt(paymentId),
-                    PaymentMethodDetails: handler.ParsePaymentPromptDetails(entity.GetPaymentPrompt(paymentId).Details)))
+                    PaymentMethodDetails: handler.ParsePaymentPromptDetails(entity.GetPaymentPrompt(paymentId)
+                        .Details)))
                 .Select(tuple => (
                     tuple.Invoice,
                     tuple.PaymentMethodDetails,
@@ -208,7 +210,8 @@ namespace BTCPayServer.Plugins.Monero.Services
 
 
                     return HandlePaymentData(cryptoCode, transfer.Address, transfer.Amount, transfer.SubaddrIndex.Major,
-                        transfer.SubaddrIndex.Minor, transfer.Txid, transfer.Confirmations, transfer.Height, transfer.UnlockTime,invoice,
+                        transfer.SubaddrIndex.Minor, transfer.Txid, transfer.Confirmations, transfer.Height,
+                        transfer.UnlockTime, invoice,
                         updatedPaymentEntities);
                 }));
             }
@@ -228,17 +231,16 @@ namespace BTCPayServer.Plugins.Monero.Services
         private async Task OnNewBlock(string cryptoCode)
         {
             await UpdateAnyPendingMoneroLikePayment(cryptoCode);
-            _eventAggregator.Publish(new NewBlockEvent() { PaymentMethodId = PaymentTypes.CHAIN.GetPaymentMethodId(cryptoCode) });
+            _eventAggregator.Publish(new NewBlockEvent()
+                { PaymentMethodId = PaymentTypes.CHAIN.GetPaymentMethodId(cryptoCode) });
         }
 
         private async Task OnTransactionUpdated(string cryptoCode, string transactionHash)
         {
             var paymentMethodId = PaymentTypes.CHAIN.GetPaymentMethodId(cryptoCode);
-            var transfer = await _moneroRpcProvider.WalletRpcClients[cryptoCode]
-                .SendCommandAsync<GetTransferByTransactionIdRequest, GetTransferByTransactionIdResponse>(
-                    "get_transfer_by_txid",
-                    new GetTransferByTransactionIdRequest() { TransactionId = transactionHash });
-
+            var transfer = await GetTransferByTxId(cryptoCode, transactionHash, this.CancellationToken);
+            if (transfer is null)
+                return;
             var paymentsToUpdate = new List<(PaymentEntity Payment, InvoiceEntity invoice)>();
 
             //group all destinations of the tx together and loop through the sets
@@ -259,7 +261,7 @@ namespace BTCPayServer.Plugins.Monero.Services
                     transfer.Transfer.Txid,
                     transfer.Transfer.Confirmations,
                     transfer.Transfer.Height
-                    , transfer.Transfer.UnlockTime,invoice, paymentsToUpdate);
+                    , transfer.Transfer.UnlockTime, invoice, paymentsToUpdate);
             }
 
             if (paymentsToUpdate.Any())
@@ -272,6 +274,49 @@ namespace BTCPayServer.Plugins.Monero.Services
                         _eventAggregator.Publish(new Events.InvoiceNeedUpdateEvent(valueTuples.Key.Id));
                     }
                 }
+            }
+        }
+
+        private async Task<GetTransferByTransactionIdResponse> GetTransferByTxId(string cryptoCode,
+            string transactionHash, CancellationToken cancellationToken)
+        {
+            var accounts = await _moneroRpcProvider.WalletRpcClients[cryptoCode].SendCommandAsync<GetAccountsRequest, GetAccountsResponse>("get_accounts", new GetAccountsRequest(), cancellationToken);
+            var accountIndexes = accounts
+                .SubaddressAccounts
+                .Select(a => new long?(a.AccountIndex))
+                .ToList();
+            if (accountIndexes.Count is 0)
+                accountIndexes.Add(null);
+            var req = accountIndexes
+                .Select(i => GetTransferByTxId(cryptoCode, transactionHash, i))
+                .ToArray();
+            foreach (var task in req)
+            {
+                var result = await task;
+                if (result != null)
+                    return result;
+            }
+
+            return null;
+        }
+
+        private async Task<GetTransferByTransactionIdResponse> GetTransferByTxId(string cryptoCode, string transactionHash, long? accountIndex)
+        {
+            try
+            {
+                var result = await _moneroRpcProvider.WalletRpcClients[cryptoCode]
+                    .SendCommandAsync<GetTransferByTransactionIdRequest, GetTransferByTransactionIdResponse>(
+                        "get_transfer_by_txid",
+                        new GetTransferByTransactionIdRequest()
+                        {
+                            TransactionId = transactionHash,
+                            AccountIndex = accountIndex
+                        });
+                return result;
+            }
+            catch (JsonRpcClient.JsonRpcApiException e)
+            {
+                return null;
             }
         }
 
@@ -330,16 +375,17 @@ namespace BTCPayServer.Plugins.Monero.Services
             => ConfirmationsRequired(details, speedPolicy) <= details.ConfirmationCount;
 
         public static long ConfirmationsRequired(MoneroLikePaymentData details, SpeedPolicy speedPolicy)
-       => (details, speedPolicy) switch
-       {
-           (_, _) when details.ConfirmationCount < details.LockTime => details.LockTime - details.ConfirmationCount,
-           ({ InvoiceSettledConfirmationThreshold: long v }, _) => v,
-           (_, SpeedPolicy.HighSpeed) => 0,
-           (_, SpeedPolicy.MediumSpeed) => 1,
-           (_, SpeedPolicy.LowMediumSpeed) => 2,
-           (_, SpeedPolicy.LowSpeed) => 6,
-           _ => 6,
-       };
+            => (details, speedPolicy) switch
+            {
+                (_, _) when details.ConfirmationCount < details.LockTime =>
+                    details.LockTime - details.ConfirmationCount,
+                ({ InvoiceSettledConfirmationThreshold: long v }, _) => v,
+                (_, SpeedPolicy.HighSpeed) => 0,
+                (_, SpeedPolicy.MediumSpeed) => 1,
+                (_, SpeedPolicy.LowMediumSpeed) => 2,
+                (_, SpeedPolicy.LowSpeed) => 6,
+                _ => 6,
+            };
 
 
         private async Task UpdateAnyPendingMoneroLikePayment(string cryptoCode)

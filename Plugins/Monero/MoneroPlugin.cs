@@ -128,17 +128,13 @@ public class MoneroPlugin : BaseBTCPayServerPlugin
             var walletDaemonWalletDirectory =
                 configuration.GetOrDefault<string>(
                     $"{moneroLikeSpecificBtcPayNetwork.CryptoCode}_wallet_daemon_walletdir", null);
-            // Only for regtest
-            var walletCashCowDaemonWalletDirectory =
-                configuration.GetOrDefault<string>(
-                    $"{moneroLikeSpecificBtcPayNetwork.CryptoCode}_cashcow_wallet_daemon_walletdir", null);
             var daemonUsername =
                 configuration.GetOrDefault<string>(
                     $"{moneroLikeSpecificBtcPayNetwork.CryptoCode}_daemon_username", null);
             var daemonPassword =
                 configuration.GetOrDefault<string>(
                     $"{moneroLikeSpecificBtcPayNetwork.CryptoCode}_daemon_password", null);
-            if (daemonUri == null || walletDaemonUri == null || walletDaemonWalletDirectory == null)
+            if (daemonUri == null || walletDaemonUri == null)
             {
                 var logger = serviceProvider.GetRequiredService<ILogger<MoneroPlugin>>();
                 var cryptoCode = moneroLikeSpecificBtcPayNetwork.CryptoCode.ToUpperInvariant();
@@ -150,10 +146,6 @@ public class MoneroPlugin : BaseBTCPayServerPlugin
                 {
                     logger.LogWarning($"BTCPAY_{cryptoCode}_WALLET_DAEMON_URI is not configured");
                 }
-                if (walletDaemonWalletDirectory is null)
-				{
-					logger.LogWarning($"BTCPAY_{cryptoCode}_WALLET_DAEMON_WALLETDIR is not configured");
-				}
 				logger.LogWarning($"{cryptoCode} got disabled as it is not fully configured.");
 			}
             else
@@ -165,7 +157,6 @@ public class MoneroPlugin : BaseBTCPayServerPlugin
                     Password = daemonPassword,
                     InternalWalletRpcUri = walletDaemonUri,
                     WalletDirectory = walletDaemonWalletDirectory,
-                    CashCowWalletDirectory = walletCashCowDaemonWalletDirectory,
                     CashCowWalletRpcUri = cashCowWalletDaemonUri,
                 });
             }
