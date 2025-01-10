@@ -36,7 +36,9 @@ Then create the `appsettings.dev.json` file in `btcpayserver/BTCPayServer`, with
   "DEBUG_PLUGINS": "C:\\Sources\\btcpayserver-monero-plugin\\Plugins\\Monero\\bin\\Debug\\net8.0\\BTCPayServer.Plugins.Monero.dll",
   "XMR_DAEMON_URI": "http://127.0.0.1:18081",
   "XMR_WALLET_DAEMON_URI": "http://127.0.0.1:18082",
-  "XMR_WALLET_DAEMON_WALLETDIR": "C:\\Sources\\btcpayserver-monero-plugin\\monero_wallet"
+  "XMR_CASHCOW_WALLET_DAEMON_URI": "http://127.0.0.1:18092",
+  "XMR_WALLET_DAEMON_WALLETDIR": "C:\\Sources\\btcpayserver-monero-plugin\\wallets\\merchant",
+  "XMR_CASHCOW_WALLET_DAEMON_WALLETDIR": "C:\\Sources\\btcpayserver-monero-plugin\\wallets\\cashcow"
 }
 ```
 
@@ -51,6 +53,9 @@ Note: Running or compiling the BTCPay Server project will not automatically reco
 We recommend using [Rider](https://www.jetbrains.com/rider/) for plugin development, as it supports hot reload with plugins. You can edit `.cshtml` files, save, and refresh the page to see the changes.
 
 Visual Studio does not support this feature.
+
+When debugging in regtest, BTCPay Server will automatically create an configure two wallets. (cashcow and merchant)
+You can trigger payments or mine blocks on the invoice's checkout page.
 
 # Licence
 

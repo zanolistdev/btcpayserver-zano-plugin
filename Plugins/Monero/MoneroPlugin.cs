@@ -82,6 +82,9 @@ public class MoneroPlugin : BaseBTCPayServerPlugin
 (IPaymentLinkExtension)ActivatorUtilities.CreateInstance(provider, typeof(MoneroPaymentLinkExtension), new object[] { network, pmi }));
         services.AddSingleton<ICheckoutModelExtension>(provider =>
 (ICheckoutModelExtension)ActivatorUtilities.CreateInstance(provider, typeof(MoneroCheckoutModelExtension), new object[] { network, pmi }));
+        
+        services.AddSingleton<ICheckoutCheatModeExtension>(provider =>
+            (ICheckoutCheatModeExtension)ActivatorUtilities.CreateInstance(provider, typeof(MoneroCheckoutCheatModeExtension), new object[] { network, pmi }));
 
         services.AddUIExtension("store-nav", "/Views/Monero/StoreNavMoneroExtension.cshtml");
         services.AddUIExtension("store-wallets-nav", "/Views/Monero/StoreWalletsNavMoneroExtension.cshtml");
@@ -119,9 +122,16 @@ public class MoneroPlugin : BaseBTCPayServerPlugin
             var walletDaemonUri =
                 configuration.GetOrDefault<Uri>(
                     $"{moneroLikeSpecificBtcPayNetwork.CryptoCode}_wallet_daemon_uri", null);
+            var cashCowWalletDaemonUri =
+                configuration.GetOrDefault<Uri>(
+                    $"{moneroLikeSpecificBtcPayNetwork.CryptoCode}_cashcow_wallet_daemon_uri", null);
             var walletDaemonWalletDirectory =
                 configuration.GetOrDefault<string>(
                     $"{moneroLikeSpecificBtcPayNetwork.CryptoCode}_wallet_daemon_walletdir", null);
+            // Only for regtest
+            var walletCashCowDaemonWalletDirectory =
+                configuration.GetOrDefault<string>(
+                    $"{moneroLikeSpecificBtcPayNetwork.CryptoCode}_cashcow_wallet_daemon_walletdir", null);
             var daemonUsername =
                 configuration.GetOrDefault<string>(
                     $"{moneroLikeSpecificBtcPayNetwork.CryptoCode}_daemon_username", null);
@@ -154,7 +164,9 @@ public class MoneroPlugin : BaseBTCPayServerPlugin
                     Username = daemonUsername,
                     Password = daemonPassword,
                     InternalWalletRpcUri = walletDaemonUri,
-                    WalletDirectory = walletDaemonWalletDirectory
+                    WalletDirectory = walletDaemonWalletDirectory,
+                    CashCowWalletDirectory = walletCashCowDaemonWalletDirectory,
+                    CashCowWalletRpcUri = cashCowWalletDaemonUri,
                 });
             }
         }

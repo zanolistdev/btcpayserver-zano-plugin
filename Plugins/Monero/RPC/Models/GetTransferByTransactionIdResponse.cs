@@ -3,6 +3,12 @@ using Newtonsoft.Json;
 
 namespace BTCPayServer.Plugins.Monero.RPC.Models
 {
+    public partial class TransferDestination
+    {
+        [JsonProperty("address")] public string Address { get; set; }
+        [JsonProperty("amount")] public long Amount { get; set; }
+    }
+
     public partial class GetTransferByTransactionIdResponse
     {
         [JsonProperty("transfer")] public TransferItem Transfer { get; set; }
@@ -12,6 +18,7 @@ namespace BTCPayServer.Plugins.Monero.RPC.Models
         {
             [JsonProperty("address")] public string Address { get; set; }
             [JsonProperty("amount")] public long Amount { get; set; }
+            [JsonProperty("destinations")] public TransferDestination[] Destinations { get; set; }
             [JsonProperty("confirmations")] public long Confirmations { get; set; }
             [JsonProperty("double_spend_seen")] public bool DoubleSpendSeen { get; set; }
             [JsonProperty("height")] public long Height { get; set; }

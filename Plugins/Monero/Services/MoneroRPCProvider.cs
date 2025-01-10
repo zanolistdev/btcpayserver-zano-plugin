@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Amazon.Runtime;
@@ -8,6 +9,7 @@ using BTCPayServer.Plugins.Monero.Configuration;
 using BTCPayServer.Plugins.Monero.RPC;
 using BTCPayServer.Plugins.Monero.RPC.Models;
 using BTCPayServer.Services;
+using Microsoft.Extensions.Logging;
 using NBitcoin;
 
 namespace BTCPayServer.Plugins.Monero.Services
@@ -15,9 +17,10 @@ namespace BTCPayServer.Plugins.Monero.Services
     public class MoneroRPCProvider
     {
         private readonly MoneroLikeConfiguration _moneroLikeConfiguration;
+        private readonly ILogger<MoneroRPCProvider> _logger;
         private readonly EventAggregator _eventAggregator;
-		private readonly BTCPayServerEnvironment environment;
-		public ImmutableDictionary<string, JsonRpcClient> DaemonRpcClients;
+        private readonly BTCPayServerEnvironment environment;
+        public ImmutableDictionary<string, JsonRpcClient> DaemonRpcClients;
         public ImmutableDictionary<string, JsonRpcClient> WalletRpcClients;
 
         private readonly ConcurrentDictionary<string, MoneroLikeSummary> _summaries =
@@ -25,18 +28,34 @@ namespace BTCPayServer.Plugins.Monero.Services
 
         public ConcurrentDictionary<string, MoneroLikeSummary> Summaries => _summaries;
 
-        public MoneroRPCProvider(MoneroLikeConfiguration moneroLikeConfiguration, EventAggregator eventAggregator, IHttpClientFactory httpClientFactory, BTCPayServerEnvironment environment)
+        public MoneroRPCProvider(MoneroLikeConfiguration moneroLikeConfiguration,
+            ILogger<MoneroRPCProvider> logger,
+            EventAggregator eventAggregator,
+            IHttpClientFactory httpClientFactory, BTCPayServerEnvironment environment)
         {
             _moneroLikeConfiguration = moneroLikeConfiguration;
+            _logger = logger;
             _eventAggregator = eventAggregator;
-			this.environment = environment;
-			DaemonRpcClients =
+            this.environment = environment;
+            DaemonRpcClients =
                 _moneroLikeConfiguration.MoneroLikeConfigurationItems.ToImmutableDictionary(pair => pair.Key,
-                    pair => new JsonRpcClient(pair.Value.DaemonRpcUri, pair.Value.Username, pair.Value.Password, httpClientFactory.CreateClient($"{pair.Key}client")));
+                    pair => new JsonRpcClient(pair.Value.DaemonRpcUri, pair.Value.Username, pair.Value.Password,
+                        httpClientFactory.CreateClient($"{pair.Key}client")));
             WalletRpcClients =
                 _moneroLikeConfiguration.MoneroLikeConfigurationItems.ToImmutableDictionary(pair => pair.Key,
-                    pair => new JsonRpcClient(pair.Value.InternalWalletRpcUri, "", "", httpClientFactory.CreateClient($"{pair.Key}client")));
+                    pair => new JsonRpcClient(pair.Value.InternalWalletRpcUri, "", "",
+                        httpClientFactory.CreateClient($"{pair.Key}client")));
+            if (environment.CheatMode)
+            {
+                CashCowWalletRpcClients =
+                    _moneroLikeConfiguration.MoneroLikeConfigurationItems
+                        .Where(i => i.Value.CashCowWalletRpcUri is not null).ToImmutableDictionary(pair => pair.Key,
+                            pair => new JsonRpcClient(pair.Value.CashCowWalletRpcUri, "", "",
+                                httpClientFactory.CreateClient($"{pair.Key}cashcow-client")));
+            }
         }
+
+        public ImmutableDictionary<string, JsonRpcClient> CashCowWalletRpcClients { get; set; }
 
         public bool IsAvailable(string cryptoCode)
         {
@@ -77,8 +96,8 @@ namespace BTCPayServer.Plugins.Monero.Services
             }
 
             bool walletCreated = false;
-			retry:
-			try
+            retry:
+            try
             {
                 var walletResult =
                     await walletRpcClient.SendCommandAsync<JsonRpcClient.NoRequestModel, GetHeightResponse>(
@@ -88,19 +107,19 @@ namespace BTCPayServer.Plugins.Monero.Services
             }
             catch when (environment.CheatMode && !walletCreated)
             {
-				await walletRpcClient.SendCommandAsync<CreateWalletRequest, JsonRpcClient.NoRequestModel>("create_wallet",
-					new()
-					{
-						Filename = "wallet",
-						Password = "",
-						Language = "English"
-					});
+                await CreateTestWallet(walletRpcClient);
                 walletCreated = true;
                 goto retry;
-			}
+            }
             catch
             {
                 summary.WalletAvailable = false;
+            }
+
+            if (environment.CheatMode &&
+                CashCowWalletRpcClients.TryGetValue(cryptoCode.ToUpperInvariant(), out var cashCow))
+            {
+                await MakeCashCowFat(cashCow, daemonRpcClient);
             }
 
             var changed = !_summaries.ContainsKey(cryptoCode) || IsAvailable(cryptoCode) != IsAvailable(summary);
@@ -112,6 +131,64 @@ namespace BTCPayServer.Plugins.Monero.Services
             }
 
             return summary;
+        }
+
+        private async Task MakeCashCowFat(JsonRpcClient cashcow, JsonRpcClient deamon)
+        {
+            try
+            {
+                var walletResult =
+                    await cashcow.SendCommandAsync<JsonRpcClient.NoRequestModel, GetHeightResponse>(
+                        "get_height", JsonRpcClient.NoRequestModel.Instance);
+            }
+            catch
+            {
+                _logger.LogInformation("Creating XMR cashcow wallet...");
+                await CreateTestWallet(cashcow);
+            }
+
+            var balance =
+                (await cashcow.SendCommandAsync<JsonRpcClient.NoRequestModel, GetBalanceResponse>("get_balance",
+                    JsonRpcClient.NoRequestModel.Instance));
+            if (balance.UnlockedBalance != 0)
+                return;
+            _logger.LogInformation("Mining blocks for the cashcow...");
+            var address = (await cashcow.SendCommandAsync<GetAddressRequest, GetAddressResponse>("get_address", new()
+            {
+                AccountIndex = 0
+            })).Address;
+            await deamon.SendCommandAsync<GenerateBlocks, JsonRpcClient.NoRequestModel>("generateblocks", new GenerateBlocks()
+            {
+                WalletAddress = address,
+                AmountOfBlocks = 100
+            });
+            _logger.LogInformation("Mining succeed!");
+        }
+    
+        private static async Task CreateTestWallet(JsonRpcClient walletRpcClient)
+        {
+            try
+            {
+                await walletRpcClient.SendCommandAsync<OpenWalletRequest, JsonRpcClient.NoRequestModel>(
+                    "open_wallet",
+                    new OpenWalletRequest()
+                    {
+                        Filename = "wallet",
+                        Password = "password"
+                    });
+                return;
+            }
+            catch
+            {
+            }
+
+            await walletRpcClient.SendCommandAsync<CreateWalletRequest, JsonRpcClient.NoRequestModel>("create_wallet",
+                new()
+                {
+                    Filename = "wallet",
+                    Password = "password",
+                    Language = "English"
+                });
         }
 
 

@@ -3,4 +3,5 @@
 .idea
 Plugins/packed
 .vs/
-monero_wallet/
+wallets/cashcow/
+wallets/merchant/
