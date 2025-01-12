@@ -2,6 +2,9 @@
 
 This plugin extends BTCPay Server to enable users to receive payments via Monero.
 
+> [!WARNING]
+> This plugin shares a single Monero wallet across all the stores in the BTCPay Server instance. Use this plugin only if you are not sharing your instance.
+
 ![Checkout](./img/Checkout.png)
 
 ## Configuration
