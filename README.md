@@ -58,6 +58,29 @@ Visual Studio does not support this feature.
 When debugging in regtest, BTCPay Server will automatically create an configure two wallets. (cashcow and merchant)
 You can trigger payments or mine blocks on the invoice's checkout page.
 
+## About docker-compose deployment
+
+BTCPay Server maintains its own [deployment stack project](https://github.com/btcpayserver/btcpayserver-docker) to enable users to easily update or deploy additional infrastructure (such as nodes).
+
+Monero nodes are defined in this [Docker Compose file](https://github.com/btcpayserver/btcpayserver-docker/blob/master/docker-compose-generator/docker-fragments/monero.yml).
+
+The Monero images are also maintained in the [dockerfile-deps repository](https://github.com/btcpayserver/dockerfile-deps/tree/master/Monero). While using the `dockerfile-deps` for future versions of Monero Dockerfiles is optional, maintaining [the Docker Compose Fragment](https://github.com/btcpayserver/btcpayserver-docker/blob/master/docker-compose-generator/docker-fragments/monero.yml) is necessary.
+
+
+Users can install Monero by configuring the `BTCPAYGEN_CRYPTOX` environment variables.
+
+For example, after ensuring `BTCPAYGEN_CRYPTO2` is not already assigned to another cryptocurrency:
+```bash
+BTCPAYGEN_CRYPTO2="xmr"
+. btcpay-setup.sh -i
+```
+
+This will automatically configure Monero in their deployment stack. Users can then run `btcpay-update.sh` to pull updates for the infrastructure.
+
+Note: Adding Monero to the infrastructure is not recommended for non-advanced users. If the server specifications are insufficient, it may become unresponsive.
+
+Lunanode, a VPS provider, offers an [easy way to provision the infrastructure](https://docs.btcpayserver.org/Deployment/LunaNode/) for BTCPay Server, then it installs the Docker Compose deployment on the provisioned VPS. The user can select Monero during provisioning, then the resulting VPS will use Monero automatically. (But the user will still need to install this plugin manually)
+
 # Licence
 
 [MIT](LICENSE.md)
