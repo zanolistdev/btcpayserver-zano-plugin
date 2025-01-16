@@ -79,7 +79,7 @@ This will automatically configure Monero in their deployment stack. Users can th
 
 Note: Adding Monero to the infrastructure is not recommended for non-advanced users. If the server specifications are insufficient, it may become unresponsive.
 
-Lunanode, a VPS provider, offers an [easy way to provision the infrastructure](https://docs.btcpayserver.org/Deployment/LunaNode/) for BTCPay Server, then it installs the Docker Compose deployment on the provisioned VPS. The user can select Monero during provisioning, then the resulting VPS will use Monero automatically. (But the user will still need to install this plugin manually)
+Lunanode, a VPS provider, offers an [easy way to provision the infrastructure](https://docs.btcpayserver.org/Deployment/LunaNode/) for BTCPay Server, then it installs the Docker Compose deployment on the provisioned VPS. The user can select Monero during provisioning, then the resulting VPS have a Monero deployed automatically, without the need for the user to use the command line. (But the user will still need to install this plugin manually)
 
 # Licence
 
