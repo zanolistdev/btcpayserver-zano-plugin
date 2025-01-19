@@ -47,7 +47,18 @@ Please replace `C:\\Sources\\btcpayserver-monero-plugin` with the absolute path 
 
 This will ensure that BTCPay Server loads the plugin when it starts.
 
+Then start the development dependencies via docker-compose:
+```bash
+docker-compose up -d dev
+```
+
 Finally, set up BTCPay Server as the startup project in [Rider](https://www.jetbrains.com/rider/) or Visual Studio.
+
+If you want to reset the environment you can run:
+```bash
+docker-compose down -v
+docker-compose up -d dev
+```
 
 Note: Running or compiling the BTCPay Server project will not automatically recompile the plugin project. Therefore, if you make any changes to the project, do not forget to build it before running BTCPay Server in debug mode.
 
