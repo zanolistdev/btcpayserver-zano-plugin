@@ -36,15 +36,12 @@ Then create the `appsettings.dev.json` file in `btcpayserver/BTCPayServer`, with
 
 ```json
 {
-  "DEBUG_PLUGINS": "C:\\Sources\\btcpayserver-monero-plugin\\Plugins\\Monero\\bin\\Debug\\net8.0\\BTCPayServer.Plugins.Monero.dll",
+  "DEBUG_PLUGINS": "..\\..\\Plugins\\Monero\\bin\\Debug\\net8.0\\BTCPayServer.Plugins.Monero.dll",
   "XMR_DAEMON_URI": "http://127.0.0.1:18081",
   "XMR_WALLET_DAEMON_URI": "http://127.0.0.1:18082",
   "XMR_CASHCOW_WALLET_DAEMON_URI": "http://127.0.0.1:18092",
 }
 ```
-
-Please replace `C:\\Sources\\btcpayserver-monero-plugin` with the absolute path of your repository.
-
 This will ensure that BTCPay Server loads the plugin when it starts.
 
 Then start the development dependencies via docker-compose:
