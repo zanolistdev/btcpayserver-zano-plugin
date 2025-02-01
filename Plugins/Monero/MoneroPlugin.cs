@@ -44,7 +44,7 @@ public class MoneroPlugin : BaseBTCPayServerPlugin
                     "XMR_X = XMR_BTC * BTC_X",
                     "XMR_BTC = kraken(XMR_BTC)"
                 },
-            CryptoImagePath = MoneroImages.Logo,
+            CryptoImagePath = "monero.svg",
             UriScheme = "monero"
         };
         var blockExplorerLink = chainName == ChainName.Mainnet
