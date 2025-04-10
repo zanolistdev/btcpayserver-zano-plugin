@@ -57,7 +57,8 @@ namespace BTCPayServer.Plugins.Monero.Services
 
         public ImmutableDictionary<string, JsonRpcClient> CashCowWalletRpcClients { get; set; }
 
-        public bool IsAvailable(string cryptoCode)
+		public bool IsConfigured(string cryptoCode) => WalletRpcClients.ContainsKey(cryptoCode) && DaemonRpcClients.ContainsKey(cryptoCode);
+		public bool IsAvailable(string cryptoCode)
         {
             cryptoCode = cryptoCode.ToUpperInvariant();
             return _summaries.ContainsKey(cryptoCode) && IsAvailable(_summaries[cryptoCode]);
