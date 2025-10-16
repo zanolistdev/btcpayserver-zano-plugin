@@ -1,0 +1,9 @@
+@using BTCPayServer.Abstractions.Contracts
+@inject IScopeProvider ScopeProvider
+@{
+    var isActive = ViewContext.RouteData.Values.TryGetValue("Controller", out var controller) && controller is not null &&
+                   nameof(BTCPayServer.Plugins.Zano.Controllers.UIServerZanoController).StartsWith(controller.ToString() ?? string.Empty, StringComparison.InvariantCultureIgnoreCase);
+}
+<a class="nav-link @(isActive ? "active" : string.Empty)" asp-action="Settings" asp-controller="UIServerZano">Zano</a>
+
+

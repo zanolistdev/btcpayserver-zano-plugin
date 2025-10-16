@@ -27,9 +27,9 @@ ENV SCREEN_HEIGHT 600 \
 COPY . .
 
 ARG CONFIGURATION_NAME=Release
-ARG MONERO_PLUGIN_FOLDER=/root/.btcpayserver/Plugins/BTCPayServer.Plugins.Monero/
-RUN mkdir -p ${MONERO_PLUGIN_FOLDER}
-RUN cd Plugins/Monero && dotnet build BTCPayServer.Plugins.Monero.sln --configuration ${CONFIGURATION_NAME} /p:RazorCompileOnBuild=true --output ${MONERO_PLUGIN_FOLDER}
+ARG Zano_PLUGIN_FOLDER=/root/.btcpayserver/Plugins/BTCPayServer.Plugins.Zano/
+RUN mkdir -p ${Zano_PLUGIN_FOLDER}
+RUN cd Plugins/Zano && dotnet build BTCPayServer.Plugins.Zano.sln --configuration ${CONFIGURATION_NAME} /p:RazorCompileOnBuild=true --output ${Zano_PLUGIN_FOLDER}
 RUN cd BTCPayServer.Plugins.IntegrationTests && dotnet build --configuration ${CONFIGURATION_NAME} /p:CI_TESTS=true /p:RazorCompileOnBuild=true
 RUN dotnet tool install --global Microsoft.Playwright.CLI
 RUN dotnet tool install --global JetBrains.DotCover.CommandLineTools --version 2025.1.6

@@ -1,156 +1,266 @@
-<div align="center">
-  
-  [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/btcpay-monero/btcpayserver-monero-plugin/dotnet.yml?branch=master)](https://github.com/btcpay-monero/btcpayserver-monero-plugin/actions)
-  [![Codacy Badge](https://app.codacy.com/project/badge/Grade/a86461725075418b95ae501256839500)](https://app.codacy.com/gh/btcpay-monero/btcpayserver-monero-plugin/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-  [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/a86461725075418b95ae501256839500)](https://app.codacy.com/gh/btcpay-monero/btcpayserver-monero-plugin/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
-  [![Matrix rooms](https://img.shields.io/badge/%F0%9F%92%AC%20Matrix-%23btcpay--monero-blue)](https://matrix.to/#/#btcpay-monero:matrix.org)
-</div>
+﻿# Zano BTCPay Server Plugin
 
-# Monero BTCPay Server plugin
+A comprehensive plugin for BTCPay Server that enables Zano cryptocurrency payments with advanced blockchain monitoring and automated payment processing.
 
-This plugin extends BTCPay Server to enable users to receive payments via Monero.
+## 🚀 Overview
 
-> [!WARNING]
-> This plugin shares a single Monero wallet across all the stores in the BTCPay Server instance. Use this plugin only if you are not sharing your instance.
+The Zano BTCPay Server Plugin integrates Zano blockchain functionality into BTCPay Server, providing:
 
-<p align="center">
-  <img src="./img/Checkout.png" alt="Checkout">
-</p>
+- **Automated Payment Processing**: Real-time blockchain monitoring with configurable polling intervals
+- **Multi-Network Support**: Support for multiple Zano networks (mainnet, testnet)
+- **Advanced Confirmation Logic**: Configurable confirmation thresholds based on speed policies
+- **Event-Driven Architecture**: Seamless integration with BTCPay Server's event system
+- **RPC Integration**: Direct communication with Zano daemon and wallet nodes
 
-## Configuration
+## ✨ Features
 
-Configure this plugin using the following environment variables:
+### Core Functionality
+- **Blockchain Monitoring**: Polls for new blocks every 3 seconds (configurable)
+- **Payment Detection**: Automatically detects and processes incoming Zano payments
+- **Invoice Management**: Real-time invoice status updates and payment confirmations
+- **Multi-Address Support**: Generates and manages multiple payment addresses per invoice
 
-| Environment variable | Description                                                                                                                                                                                                                                  | Example |
-| --- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| --- |
-**BTCPAY_XMR_DAEMON_URI** | **Required**. The URI of the [monerod](https://github.com/monero-project/monero) RPC interface.                                                                                                                                              | http://127.0.0.1:18081 |
-**BTCPAY_XMR_DAEMON_USERNAME** | **Optional**.  The username for authenticating with the daemon.                                                                                                                                                                              | john |
-**BTCPAY_XMR_DAEMON_PASSWORD** | **Optional**. The password for authenticating with the daemon.                                                                                                                                                                               | secret |
-**BTCPAY_XMR_WALLET_DAEMON_URI** | **Required**.  The URI of the [monero-wallet-rpc](https://getmonero.dev/interacting/monero-wallet-rpc.html) RPC interface.                                                                                                                   | http://127.0.0.1:18082 |
-**BTCPAY_XMR_WALLET_DAEMON_WALLETDIR** | **Optional**. The directory where BTCPay Server saves wallet files created via the UI ([See this blog post for more details](https://sethforprivacy.com/guides/accepting-monero-via-btcpay-server/#configure-the-bitcoin-wallet-of-choice)). | /home/cypherpunk/Monero/wallets/ |
+### Payment Processing
+- **Confirmation Policies**: 
+  - High Speed: 0 confirmations
+  - Medium Speed: 1 confirmation  
+  - Low-Medium Speed: 2 confirmations
+  - Low Speed: 6 confirmations
+- **Custom Thresholds**: Store-specific confirmation requirements
+- **Lock Time Support**: Handles time-locked transactions
 
-BTCPay Server's Docker deployment simplifies the setup by automatically configuring these variables. For further details, refer to this [blog post](https://sethforprivacy.com/guides/accepting-monero-via-btcpay-server).
+### Technical Features
+- **Event-Driven Architecture**: Built on BTCPay Server's event system
+- **RPC Client Management**: Robust daemon and wallet RPC communication
+- **Error Handling**: Graceful handling of network failures and RPC errors
+- **Logging**: Comprehensive logging for debugging and monitoring
 
-# For maintainers
+## 🏗️ Architecture
 
-## Building and testing
+### Service Components
 
-## Local Development Setup
-If you're contributing to this plugin or running a local development instance of BTCPay Server with the Monero plugin, follow these steps.
-## 1. Requirements
+#### ZanoListener
+The core service that monitors the blockchain and processes payments:
+- **Block Polling**: Timer-based polling every 3 seconds
+- **Event Processing**: Handles Zano blockchain events
+- **Payment Updates**: Automatically updates payment states and confirmations
+- **Invoice Activation**: Activates payment methods when sufficient confirmations are received
 
-- .NET 8.0 SDK or later
-- JetBrains Rider (recommended) or Visual Studio Code with C# support
-- Git
-- Docker and Docker Compose
+#### ZanoRPCProvider
+Manages RPC connections to Zano nodes:
+- **Daemon RPC**: Block height and network information
+- **Wallet RPC**: Transaction details and transfer information
+- **Connection Management**: Handles multiple network connections
 
-## 2. Clone the Repositories
-Create a working directory and clone both the BTCPay Server and Monero plugin repositories side by side:
-If you are a developer maintaining this plugin, in order to maintain this plugin, you need to clone this repository with `--recurse-submodules`:
+#### Payment Handlers
+Process Zano-specific payment data:
+- **Payment Parsing**: Converts blockchain data to payment entities
+- **Status Management**: Determines payment status based on confirmations
+- **Amount Conversion**: Handles Zano's atomic units
 
+## 📋 Prerequisites
+
+- **BTCPay Server**: Version 1.12.0 or higher
+- **Zano Node**: Running Zano daemon and wallet RPC
+- **.NET 6.0+**: For building and running the plugin
+- **PostgreSQL**: For BTCPay Server database
+
+## 🛠️ Installation
+
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/btcpayserver/btcpayserver
-git clone --recurse-submodules https://github.com/btcpay-monero/btcpayserver-monero-plugin
+git clone https://github.com/your-username/ZanoGitHub.git
+cd ZanoGitHub
 ```
-## 3. Build the Plugin
-Navigate to the plugin directory and restore/build the solution:
-```bash 
-cd btcpayserver-monero-plugin
-dotnet restore
-dotnet build btcpay-monero-plugin.sln
-```
-To build and run unit tests, run the following commands:
 
+### 2. Build the Plugin
 ```bash
-dotnet build btcpay-monero-plugin.sln
-dotnet test BTCPayServer.Plugins.UnitTests --verbosity normal
+cd Plugins/Zano
+dotnet build
 ```
-To run unit tests with coverage, install JetBrains dotCover CLI:
 
+### 3. Deploy to BTCPay Server
 ```bash
-dotnet tool install --global JetBrains.dotCover.CommandLineTools --version 2025.1.6
+# Copy the built plugin to BTCPay Server plugins directory
+cp -r bin/Debug/net6.0/* /path/to/btcpayserver/plugins/Zano/
 ```
-Then run the following command:
 
+### 4. Restart BTCPay Server
 ```bash
-dotCover cover-dotnet --TargetArguments="test BTCPayServer.Plugins.UnitTests --no-build" --ReportType=HTML --Output=coverage/dotCover.UnitTests.output.html --ReportType=detailedXML --Output=coverage/dotCover.UnitTests.output.xml --filters="-:Assembly=BTCPayServer.Plugins.UnitTests;-:Assembly=testhost;-:Assembly=BTCPayServer;-:Class=AspNetCoreGeneratedDocument.*"
+# Restart BTCPay Server to load the plugin
+sudo systemctl restart btcpayserver
 ```
 
-To build and run integration tests, run the following commands:
+## ⚙️ Configuration
 
-```bash
-dotnet build btcpay-monero-plugin.sln
-docker compose -f BTCPayServer.Plugins.IntegrationTests/docker-compose.yml run tests
-```
-
-## Code formatting
-
-We use the **unmodified** standardized `.editorconfig` from .NET SDK. Run `dotnet new editorconfig --force` to apply the latest version.
-
-To enforce formatting for the whole project, run `dotnet format btcpay-monero-plugin.sln --exclude submodules/* --verbosity diagnostic`
-
-To enforce custom analyzer configuration options, we do use global _AnalyzerConfig_ `.globalconfig` file.
-
-## 4. Configure BTCPay Server to Load the Plugin
-
-For vscode, open the `launch.json` file in the `.vscode` folder and set the `launchSettingsProfile` to `Altcoins-HTTPS`.
-
-Then create the `appsettings.dev.json` file in `btcpayserver/BTCPayServer`, with the following content:
+### Plugin Settings
+Configure the plugin through BTCPay Server's plugin settings:
 
 ```json
 {
-  "DEBUG_PLUGINS": "..\\..\\Plugins\\Monero\\bin\\Debug\\net8.0\\BTCPayServer.Plugins.Monero.dll",
-  "XMR_DAEMON_URI": "http://127.0.0.1:18081",
-  "XMR_WALLET_DAEMON_URI": "http://127.0.0.1:18082"
+  "Zano": {
+    "Network": "mainnet",
+    "DaemonRpcUrl": "http://localhost:32348",
+    "WalletRpcUrl": "http://localhost:32349",
+    "Username": "your-rpc-username",
+    "Password": "your-rpc-password",
+    "BlockPollingInterval": 3
+  }
 }
 ```
-This will ensure that BTCPay Server loads the plugin when it starts.
 
-## 5. Start Development Environment
+### Environment Variables
+You can also configure the plugin using environment variables:
 
-Then start the development dependencies via docker-compose:
 ```bash
-cd BTCPayServer.Plugins.IntegrationTests/
-docker-compose up -d dev
+# Zano Daemon RPC endpoint
+export ZANO_DAEMON_URI="http://37.27.100.59:10500"
+
+# Zano Wallet RPC endpoint  
+export ZANO_WALLET_DAEMON_URI="http://127.0.0.1:11233"
 ```
 
-Finally, set up BTCPay Server as the startup project in [Rider](https://www.jetbrains.com/rider/) or Visual Studio.
+**Note**: Environment variables take precedence over configuration file settings.
 
-If you want to reset the environment you can run:
+### Zano Node Configuration
+Ensure your Zano node has RPC enabled:
+
 ```bash
-docker-compose down -v
-docker-compose up -d dev
+# In zano.conf
+rpc-bind-ip=0.0.0.0
+rpc-bind-port=32348
+rpc-login=username:password
 ```
 
-Note: Running or compiling the BTCPay Server project will not automatically recompile the plugin project. Therefore, if you make any changes to the project, do not forget to build it before running BTCPay Server in debug mode.
+## 🔧 Usage
 
-We recommend using [Rider](https://www.jetbrains.com/rider/) for plugin development, as it supports hot reload with plugins. You can edit `.cshtml` files, save, and refresh the page to see the changes.
+### 1. Enable the Plugin
+- Go to BTCPay Server admin panel
+- Navigate to Plugins > Zano
+- Click "Enable"
 
-Visual Studio does not support this feature.
+### 2. Configure Payment Methods
+- Go to Store Settings > Payment Methods
+- Add Zano as a payment method
+- Configure confirmation thresholds and speed policies
 
-## About docker-compose deployment
+### 3. Create Invoices
+- Create invoices as usual
+- Zano payment addresses will be automatically generated
+- Monitor payment status in real-time
 
-BTCPay Server maintains its own [deployment stack project](https://github.com/btcpayserver/btcpayserver-docker) to enable users to easily update or deploy additional infrastructure (such as nodes).
+### 4. Monitor Payments
+The plugin automatically:
+- Detects new blocks every 3 seconds
+- Processes incoming transactions
+- Updates payment confirmations
+- Activates invoices when sufficient confirmations are received
 
-Monero nodes are defined in this [Docker Compose file](https://github.com/btcpayserver/btcpayserver-docker/blob/master/docker-compose-generator/docker-fragments/monero.yml).
+## 📊 Monitoring
 
-The Monero images are also maintained in the [dockerfile-deps repository](https://github.com/btcpayserver/dockerfile-deps/tree/master/Monero). While using the `dockerfile-deps` for future versions of Monero Dockerfiles is optional, maintaining [the Docker Compose Fragment](https://github.com/btcpayserver/btcpayserver-docker/blob/master/docker-compose-generator/docker-fragments/monero.yml) is necessary.
-
-
-Users can install Monero by configuring the `BTCPAYGEN_CRYPTOX` environment variables.
-
-For example, after ensuring `BTCPAYGEN_CRYPTO2` is not already assigned to another cryptocurrency:
+### Logs
+Monitor plugin activity through BTCPay Server logs:
 ```bash
-BTCPAYGEN_CRYPTO2="xmr"
-. btcpay-setup.sh -i
+# View plugin logs
+tail -f /var/log/btcpayserver/btcpayserver.log | grep Zano
 ```
 
-This will automatically configure Monero in their deployment stack. Users can then run `btcpay-update.sh` to pull updates for the infrastructure.
+### Key Metrics
+- **Block Polling**: Every 3 seconds
+- **Payment Processing**: Real-time as blocks arrive
+- **Confirmation Updates**: Automatic status updates
+- **Error Handling**: Graceful degradation on failures
 
-Note: Adding Monero to the infrastructure is not recommended for non-advanced users. If the server specifications are insufficient, it may become unresponsive.
+## 🔍 Troubleshooting
 
-Lunanode, a VPS provider, offers an [easy way to provision the infrastructure](https://docs.btcpayserver.org/Deployment/LunaNode/) for BTCPay Server, then it installs the Docker Compose deployment on the provisioned VPS. The user can select Monero during provisioning, then the resulting VPS have a Monero deployed automatically, without the need for the user to use the command line. (But the user will still need to install this plugin manually)
+### Common Issues
 
-# Licence
+#### RPC Connection Failed
+```bash
+# Check Zano node status
+curl -X POST http://localhost:32348/json_rpc \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":"0","method":"getinfo"}'
+```
 
-[MIT](LICENSE.md)
+#### Plugin Not Loading
+- Verify .NET version compatibility
+- Check plugin file permissions
+- Review BTCPay Server logs for errors
+
+#### Payment Not Detected
+- Verify RPC credentials
+- Check network connectivity
+- Ensure sufficient confirmations for speed policy
+
+### Debug Mode
+Enable debug logging in plugin configuration:
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "BTCPayServer.Plugins.Zano": "Debug"
+    }
+  }
+}
+```
+
+## 🧪 Testing
+
+### Testnet Setup
+```bash
+# Configure for testnet
+"Network": "testnet",
+"DaemonRpcUrl": "http://localhost:32348",
+"WalletRpcUrl": "http://localhost:32349"
+```
+
+### Test Scenarios
+- Create test invoices
+- Send test payments
+- Verify confirmation counting
+- Test speed policy enforcement
+
+## 🤝 Contributing
+
+### Development Setup
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+### Code Style
+- Follow C# coding conventions
+- Use async/await for I/O operations
+- Implement proper error handling
+- Add comprehensive logging
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **BTCPay Server Team**: For the excellent plugin architecture
+- **Zano Community**: For blockchain integration support
+- **Contributors**: All who have helped improve this plugin
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-username/ZanoGitHub/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/ZanoGitHub/discussions)
+- **Documentation**: [Wiki](https://github.com/your-username/ZanoGitHub/wiki)
+
+## 🔄 Version History
+
+### v1.0.0
+- Initial release
+- Basic Zano payment support
+- Block polling every 3 seconds
+- Multi-network support
+- Advanced confirmation logic
+
+---
+
+**Note**: This plugin is designed for production use but should be thoroughly tested in your environment before deployment.

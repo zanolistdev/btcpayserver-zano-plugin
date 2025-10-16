@@ -1,0 +1,52 @@
+@using BTCPayServer.Models.InvoicingModels
+@model CheckoutModel
+@*
+  Purpose: Keep displaying the original invoice crypto amount at the header during checkout
+  for ZANO, avoiding transient 0.000 when Due reaches zero just before the paid screen.
+*@
+<script>
+    (function(){
+        try {
+            debugger;
+            const initial = window.initialSrvModel || {};
+            const isZano = (initial.paymentMethodCurrency || '').toUpperCase() === 'ZANO';
+            if (!isZano) return;
+
+            const header = document.getElementById('AmountDue');
+            if (!header) return;
+
+            const originalText = `${initial.orderAmount} ${initial.paymentMethodCurrency}`;
+
+            const observer = new MutationObserver(() => {
+                // If header flips to 0 while checkout is still active, restore original amount
+                // We keep this until the UI switches to the result (paid) section
+                const paymentSection = document.getElementById('payment');
+                const resultSection = document.getElementById('result');
+                const isPaymentActive = paymentSection && paymentSection.style.display !== 'none' && !resultSection;
+                if (!isPaymentActive) return;
+
+                const txt = header.textContent?.trim();
+                if (txt && /^0+(\.|,)?0*$/.test(txt.split(' ')[0])) {
+                    header.textContent = originalText;
+                    header.setAttribute('data-amount-due', initial.orderAmount);
+                    header.setAttribute('data-clipboard', initial.orderAmount);
+                }
+            });
+
+            observer.observe(header, { childList: true, subtree: true, characterData: true });
+
+            // Also set initially if already 0 for any reason
+            const txt = header.textContent?.trim();
+            if (txt && /^0+(\.|,)?0*$/.test(txt.split(' ')[0])) {
+                header.textContent = originalText;
+                header.setAttribute('data-amount-due', initial.orderAmount);
+                header.setAttribute('data-clipboard', initial.orderAmount);
+            }
+        } catch (e) {
+            // no-op
+        }
+    })();
+    </script>
+
+
+
